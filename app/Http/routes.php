@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Task;
+use Illuminate\Http\Request;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -11,6 +14,46 @@
 |
 */
 
+/**
+ * show task dashboard
+ */
 Route::get('/', function () {
-    return view('welcome');
+    $tasks = Task::orderBy('created_at', 'asc')->get();
+
+
+    return view('tasks', [
+        'tasks' => $tasks
+    ]);
 });
+
+/**
+ * add a new task
+ */
+Route::post('/task', function (Request $request) {
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return redirect('/')
+            ->withInput()
+            ->withErrors($validator);
+    }
+
+    // create the task
+    $task = new Task;
+    $task->name = $request->name;
+    $task->save();
+
+    return redirect('/');
+});
+
+/**
+ * delete task
+ */
+Route::delete('/task/{task}', function (Task $task) {
+    $task->delete();
+
+    return redirect('/');
+});
+
